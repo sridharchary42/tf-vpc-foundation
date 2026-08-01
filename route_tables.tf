@@ -20,8 +20,6 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# Private route table — no internet route yet (NAT Gateway is next week's project,
-# since that's the one piece here that actually costs money).
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 
