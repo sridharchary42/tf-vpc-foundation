@@ -16,11 +16,11 @@ Every resource here — VPC, subnets, Internet Gateway, route tables — is perm
 - AWS CLI v2, configured via `aws configure`
 
 ## Run it
-\`\`\`bash
+```bash
 terraform init
 terraform plan
 terraform apply
-\`\`\`
+```
 
 ## Verify in the AWS Console
 - VPC dashboard → confirm the VPC and CIDR
@@ -29,9 +29,9 @@ terraform apply
 - Internet Gateways → attached to the VPC
 
 ## Tear it down
-\`\`\`bash
+```bash
 terraform destroy
-\`\`\`
+```
 
 ## What I'd do differently in production
 - Remote state (S3 + DynamoDB locking) instead of local state
