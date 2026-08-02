@@ -1,0 +1,91 @@
+name: Terraform CI/CD
+
+on:
+  pull_request:
+    paths:
+      - '**.tf'
+  push:
+    branches: [main]
+    paths:
+      - '**.tf'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'apply or destroy'
+        required: true
+        type: choice
+        options:
+          - apply
+          - destroy
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  plan:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.0
+
+      - name: Terraform fmt check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform init
+        run: terraform init
+
+      - name: Terraform validate
+        run: terraform validate
+
+      - name: Terraform plan
+        run: terraform plan
+        env:
+          TF_VAR_my_ip_cidr: ${{ vars.MY_IP_CIDR }}
+
+  apply-or-destroy:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.0
+
+      - name: Terraform init
+        run: terraform init
+
+      - name: Terraform apply
+        if: github.event.inputs.action == 'apply'
+        run: terraform apply -auto-approve
+        env:
+          TF_VAR_my_ip_cidr: ${{ vars.MY_IP_CIDR }}
+
+      - name: Deploy nginx to EKS
+        if: github.event.inputs.action == 'apply'
+        run: |
+          aws eks update-kubeconfig --name tf-vpc-foundation-eks --region us-east-1
+          kubectl apply -f nginx-demo.yaml
+          kubectl get pods -o wide
+
+      - name: Terraform destroy
+        if: github.event.inputs.action == 'destroy'
+        run: terraform destroy -auto-approve
+        env:
+          TF_VAR_my_ip_cidr: ${{ vars.MY_IP_CIDR }}
