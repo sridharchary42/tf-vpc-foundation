@@ -24,13 +24,13 @@ resource "aws_iam_role" "github_actions" {
       Principal = {
         Federated = aws_iam_openid_connect_provider.github_actions.arn
       }
-      Action = "sts:AssumeRoleWithWebIdentity"
+      Action = ["sts:AssumeRoleWithWebIdentity", "sts:TagSession"]
       Condition = {
         StringEquals = {
           "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
         }
         StringLike = {
-          "token.actions.githubusercontent.com:sub" = "repo:sridharchary42/tf-vpc-foundation:*"
+          "token.actions.githubusercontent.com:sub" = "repo:sridharchary42@*/tf-vpc-foundation@*:*"
         }
       }
     }]
