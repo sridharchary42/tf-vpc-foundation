@@ -12,6 +12,10 @@ resource "aws_subnet" "public" {
     ManagedBy   = "Terraform"
     Tier        = "public"
   }
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_subnet" "private" {
@@ -26,5 +30,9 @@ resource "aws_subnet" "private" {
     Environment = var.environment
     ManagedBy   = "Terraform"
     Tier        = "private"
+  }
+
+  lifecycle {
+    ignore_changes = [tags]
   }
 }
